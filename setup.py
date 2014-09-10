@@ -1,10 +1,10 @@
 from distutils.core import setup
 
 setup(
-    name='kunoichi',
-    version='0.1.1',
-    author='Daniel Lathrop',
-    author_email='dlathrop@dallasnews.com',
+    name='something-that-isnt-japanese',
+    version='0.1.2',
+    author='Jon McClure',
+    author_email='jmcclure@dallasnews.com',
     packages=['kunoichi', 'kunoichi.test'],
     scripts=['bin/whitebelt','bin/blackbelt'],
     url='http://pypi.python.org/pypi/kunoichi/',
