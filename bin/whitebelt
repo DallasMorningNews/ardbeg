@@ -1,3 +1,24 @@
 #!/usr/bin/env python
+from jinja2 import Environment, FileSystemLoader
+import os
 
-print("white")
+settings = { 'home_dir': '.',
+	'template_dirs': ['./templates', './.template'],
+}
+
+file_list = os.listdir(settings['home_dir']) 
+env = Environment(loader=FileSystemLoader(settings['template_dirs']))
+
+template = env.get_template('site.html')
+
+for filename in file_list:
+	if filename.endswith(".html"):
+		content = open(filename, 'r').read()
+		print(content)
+		outfile = open("output/"+filename, 'w')
+		if content.startswith("{% extends"):
+			new_template = env.from_string(content)
+			outfile.write(new_template.render())
+		else:
+			outfile.write(template.render(content=content))
+		outfile.close()
