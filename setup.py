@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='kunoichi',
@@ -8,7 +8,7 @@ setup(
     packages=['kunoichi', 'kunoichi.test'],
     entry_points={
         'console_scripts': [
-            'kunoichi = kunoichi.cli:main',
+            'kunoichi = kunoichi.cli:start',
         ],
     },
     url='http://pypi.python.org/pypi/kunoichi/',
@@ -18,6 +18,8 @@ setup(
     install_requires=[
         "Jinja2 >= 2.7.3",
         "docopt",
-        "easywatch"
+        "easywatch",
+        "python-tablefu",
+        "boto",
     ],
 )

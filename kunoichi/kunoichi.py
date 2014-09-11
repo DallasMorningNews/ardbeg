@@ -52,42 +52,54 @@ class publisher(object):
 		self.logger = logger
 
 	def run(self,publish=False,develop=False):
-		self.copy_static(self)
-		self.render_templates(self)
+		self.copy_static()
+		self.render_templates()
 		if publish:
 			now = datetime.datetime.now()
-			destDir = str(now.year)+"-"+os.path.basename(self.homePath)
-			upload(PublishBucket,outputPath,destDir)
-			upload(RepoBucket,outputPath,destDir)
+			destDir = str(now.year)+"-"+os.path.basename(os.getcwd())
+			upload(PublishBucket,self.outputPath,destDir)
+			archive(RepoBucket,os.getcwd(),destDir)
 		if develop:
-			pass
+			self.logger.info("Watching '%s' for changes..." % os.getcwd())
+			self.logger.info("Serving on port 4242")
+			self.logger.info("Press Ctrl+C to stop.")
+			tinkerer(self).develop()
 
 	def copy_static(self):
-		staticWrite = os.path.join(self.outPath,os.path.basename(os.path.normpath(self.staticPath)))
+		staticWrite = os.path.join(self.outputPath,os.path.basename(os.path.normpath(self.staticPath)))
 		copy_tree(self.staticPath,staticWrite)
 
 	def render_templates(self):
-		#render index.html in project root first, if it exists
+		#render index.html in project root first, IF it exists
 		try:
 			template = self._env.get_template('content/index.html')
 			self.logger.info("Rendering %s..." % template.name)
-			dataContext = dataLoad(self)
+			dataContext = self.dataLoad()
 			template.stream(dataContext).dump(os.path.join(self.outputPath,'index.html'))
 		except Exception:
 			pass
-		#render content pages and write with any subdirectory structure
-		#overwrites index.html if duplicate in contentPath
-		for directory,subs,files in os.walk(self.contentPath):
-			for file in files:
-				template = self._env.get_template('content/'+file)
-				self.logger.info("Rendering %s..." % template.name)
-				dataContext = dataLoad(self)
-				template.stream(dataContext).dump(os.path.join(self.outputPath,os.path.relpath(os.path.join(directory,file),self.contentPath)))
+
+		for file in os.listdir(self.contentPath):
+			template = self._env.get_template('content/'+file)
+			self.logger.info("Rendering %s..." % template.name)
+			dataContext = self.dataLoad()
+			template.stream(dataContext).dump(os.path.join(self.outputPath,file))
+
+		##RECURSIVE content directory???
+		# for directory,subs,files in os.walk(self.contentPath):
+		# 	for file in files:
+		# 		template = self._env.get_template('content/'+file)
+		# 		self.logger.info("Rendering %s..." % template.name)
+		# 		dataContext = self.dataLoad()
+		# 		mkdir = os.path.join(self.outputPath,os.path.relpath(directory,self.contentPath))
+		# 		if not os.path.exists(mkdir):
+		# 			os.makedirs(mkdir)
+		# 		template.stream(dataContext).dump(os.path.join(self.outputPath,os.path.relpath(os.path.join(directory,file),self.contentPath)))
 
 	def dataLoad(self):
 		contexts={}
 		for file in os.listdir(self.dataPath):
-			table = table_fu.TableFu(open(file,'U'))
+			table = table_fu.TableFu(open(os.path.join(self.dataPath,file),'U'))
 			contexts[ os.path.splitext(os.path.basename(file))[0] ] = table
 		return contexts
 		
@@ -95,22 +107,23 @@ class publisher(object):
 class tinkerer(object):
 	def __init__(self, publisher):
 		self.publisher = publisher 
-
+		self.searchpath = os.getcwd()
 
 	def should_handle(self, event_type, filename):
-	    print "%s %s" % (event_type, filename)
-	    return (event_type == "modified"
-	            and filename.startswith(self.searchpath))
+		#check to make sure file isn't in rendered path/prevent recursion
+		if os.path.relpath(filename,self.publisher.outputPath).startswith('..'):
+		    return (event_type == "modified"
+		            and filename.startswith(self.searchpath))
+
+
+	#src_path = path to file modified
+	#event_type =  created, deleted, modified, moved
 
 	def event_handler(self, event_type, src_path):
-	    filename = os.path.relpath(src_path, self.searchpath)
-	    if self.should_handle(event_type, src_path):
-	        if self.renderer.is_static(filename):
-	            files = self.renderer.get_dependencies(filename)
-	            self.renderer.copy_static(files)
-	        else:
-	            templates = self.renderer.get_dependencies(filename)
-	            self.renderer.render_templates(templates)
+		filename = os.path.relpath(src_path, self.searchpath)
+		if self.should_handle(event_type, src_path):
+			self.publisher.render_templates()
+			self.publisher.copy_static()
 
 	def watch(self):
 	    import easywatch
@@ -119,7 +132,7 @@ class tinkerer(object):
 	def serve(self):
 	    import SimpleHTTPServer
 	    import SocketServer
-	    os.chdir(self.outPath)
+	    os.chdir(self.publisher.outputPath)
 	    PORT = 4242
 	    Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
 	    httpd = SocketServer.TCPServer(("", PORT), Handler)
@@ -157,12 +170,12 @@ def make_publisher(homePath,
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
     return publisher(environment,
-                    homePath=homePath,      
-                    staticPath = staticPath,
-                    templatePath=templatePath,
-                    contentPath=contentPath,
-                    dataPath=dataPath,
-                    outputPath=outputPath,
+                    homePath=absolutePath(homePath),      
+                    staticPath = absolutePath(staticPath),
+                    templatePath=absolutePath(templatePath),
+                    contentPath=absolutePath(contentPath),
+                    dataPath=absolutePath(dataPath),
+                    outputPath=absolutePath(outputPath),
                     logger=logger,
                     )
 
@@ -176,26 +189,37 @@ def upload(bucket,sourceDir,destDir):
     for path,dir,files in os.walk(sourceDir): 
         for file in files: 
         	abspath = os.path.join(path,file)
-            relpath = os.path.relpath(abspath,sourceDir) 
-            destpath = os.path.join(destDir, relpath)
-            print 'Uploading %s to Amazon S3 bucket %s' % (relpath, bucket)
-            k.key = destpath
-            k.set_contents_from_filename(abspath)
-            k.set_acl('public-read')
-    print "Uploaded to AWS"
+        	relpath = os.path.relpath(abspath,sourceDir)
+        	destpath = os.path.join(destDir, relpath)
+        	print 'Uploading %s to Amazon S3 bucket %s' % (relpath, bucket)
+        	k.key = destpath
+        	k.set_contents_from_filename(abspath)
+        	k.set_acl('public-read')
+
+def archive(bucket,sourceDir,destDir):
+	k = boto.s3.key.Key(bucket)
+	for path,dir,files in os.walk(sourceDir): 
+		for file in files: 
+			abspath = os.path.join(path,file)
+			relpath = os.path.relpath(abspath,sourceDir)
+			destpath = os.path.join(destDir, relpath)
+			print 'Uploading %s to Amazon S3 bucket %s' % (relpath, bucket)
+			k.key = destpath
+			k.set_contents_from_filename(abspath)
+			k.set_acl('public-read')
 
 ## Force absolute paths 
 def absoluteList(path):
-    if not os.path.isabs(path):
-        project_path = os.getcwd()
-        path = os.path.join(project_path, path)
-    return [direct[0] for direct in os.walk(path)]
+	if not os.path.isabs(path):
+		project_path = os.getcwd()
+		path = os.path.join(project_path, path)
+	return [direct[0] for direct in os.walk(path)]
 
 def absolutePath(path):
-    if not os.path.isabs(path):
-        project_path = os.getcwd()
-        return os.path.join(project_path, path)
-    return path
+	if not os.path.isabs(path):
+		project_path = os.getcwd()
+		return os.path.join(project_path, path)
+	return path
 
 	
 

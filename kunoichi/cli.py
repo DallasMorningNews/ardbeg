@@ -1,24 +1,23 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-"""kuniochi
+"""kunoichi
 
 Usage:
-  kuniochi develop [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
-  kuniochi publish [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
-  kuniochi (-h | --help) --pagepath=<pagepath>
-  kuniochi --version
+  kunoichi develop [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  kunoichi publish [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  kunoichi (-h | --help) --pagepath=<pagepath>
+  kunoichi --version
 
 Options:
   -h --help     Show this screen.
   --version     Show version.
 
 """
-
 from docopt import docopt
 import os
 import sys
-from kunoichi import kunoichi
+import kunoichi
 
 def start():
     arguments = docopt(__doc__, version='kunoichi 0.0.1')
