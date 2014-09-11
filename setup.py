@@ -1,17 +1,23 @@
 from distutils.core import setup
 
 setup(
-    name='something-that-isnt-japanese',
-    version='0.1.2',
+    name='kunoichi',
+    version='0.0.1',
     author='Jon McClure',
     author_email='jmcclure@dallasnews.com',
     packages=['kunoichi', 'kunoichi.test'],
-    scripts=['bin/whitebelt','bin/blackbelt'],
+    entry_points={
+        'console_scripts': [
+            'kunoichi = kunoichi.cli:main',
+        ],
+    },
     url='http://pypi.python.org/pypi/kunoichi/',
     license='LICENSE.txt',
     description='Static site generator based on Jinja2.',
     long_description=open('README.txt').read(),
     install_requires=[
         "Jinja2 >= 2.7.3",
+        "docopt",
+        "easywatch"
     ],
 )
