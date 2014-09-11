@@ -1,17 +1,17 @@
 from setuptools import setup
 
 setup(
-    name='kunoichi',
+    name='ardbeg',
     version='0.0.1',
     author='Jon McClure',
     author_email='jmcclure@dallasnews.com',
-    packages=['kunoichi', 'kunoichi.test'],
+    packages=['ardbeg', 'ardbeg.test'],
     entry_points={
         'console_scripts': [
-            'kunoichi = kunoichi.cli:start',
+            'ardbeg = ardbeg.cli:start',
         ],
     },
-    url='http://pypi.python.org/pypi/kunoichi/',
+    url='http://pypi.python.org/pypi/ardbeg/',
     license='LICENSE.txt',
     description='Static site generator based on Jinja2.',
     long_description=open('README.txt').read(),

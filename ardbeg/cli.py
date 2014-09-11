@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-"""kunoichi
+"""ardbeg
 
 Usage:
-  kunoichi develop [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
-  kunoichi publish [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
-  kunoichi (-h | --help) --pagepath=<pagepath>
-  kunoichi --version
+  ardbeg develop [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  ardbeg publish [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  ardbeg (-h | --help) --pagepath=<pagepath>
+  ardbeg --version
 
 Options:
   -h --help     Show this screen.
@@ -17,10 +17,10 @@ Options:
 from docopt import docopt
 import os
 import sys
-import kunoichi
+import ardbeg
 
 def start():
-    arguments = docopt(__doc__, version='kunoichi 0.0.1')
+    arguments = docopt(__doc__, version='ardbeg 0.0.1')
 
     def argcheck(argString,default):
       if arguments[argString] is not None:
@@ -42,7 +42,7 @@ def start():
     dataPath   = argcheck('--dataPath','data'   )
 
 
-    publisher = kunoichi.make_publisher(
+    publisher = ardbeg.make_publisher(
         homePath     = homePath    , 
     templatePath = templatePath,
     staticPath   = staticPath  ,
