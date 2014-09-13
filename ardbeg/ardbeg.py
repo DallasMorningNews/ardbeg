@@ -10,6 +10,7 @@ import datetime
 import zipfile
 from jinja2 import Environment, FileSystemLoader, PrefixLoader
 import table_fu
+import webbrowser
 
 ROOT = os.getcwd()
 
@@ -35,15 +36,16 @@ def jinja_env(templatePath,contentPath,homePath=None):
 ## Init funcs ##
 ################
 def initialize():
-	print ">>> Making development directory."
+	print "<ardbeg> Making development directory."
 	directoryDefaultWriter()
 	#dumb check for S3 creds
 	get_settings()
 	if SETTINGS.get('AWS_TEMPLATE_BUCKET',None) or os.environ.get('AWS_TEMPLATE_BUCKET'):
+		S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 		loadTemplates(TemplateBucket)
 	else:
-		print ">>> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
-	print ">>> Development directory ready."
+		print "<ardbeg> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
+	print "<ardbeg> Development directory ready."
 
 
 def directoryDefaultWriter():
@@ -102,7 +104,7 @@ def upload(bucket,sourceDir,destDir):
         	abspath = os.path.join(path,file)
         	relpath = os.path.relpath(abspath,sourceDir)
         	destpath = os.path.join(destDir, relpath)
-        	print '>>> Publishing %s to S3 bucket %s' % (relpath, bucket)
+        	print '<ardbeg> Publishing %s to S3 bucket %s' % (relpath, bucket)
         	k.key = destpath
         	k.set_contents_from_filename(abspath)
         	k.set_acl('public-read')
@@ -115,7 +117,7 @@ def archive(bucket,sourceDir,destDir):
 		for file in files:
 			zf.write(os.path.join(path,file))
 	zf.close()
-	print '>>> Archiving %s in S3 bucket %s' % (sourceDir, bucket)
+	print '<ardbeg> Archiving %s in S3 bucket %s' % (sourceDir, bucket)
 	now = datetime.datetime.now()
 	k.key = str(now.year)+"/"+os.path.basename(sourceDir)
 	k.set_contents_from_filename('temp.zip')
@@ -128,7 +130,7 @@ def loadTemplates(TemplateBucket):
 		localDir = os.path.join(ROOT,'templates/s3-templates/')
 		recursive_delete(localDir)
 		makeDirect(os.path.join(localDir,version))
-		print ">>> Downloading S3 templates "+version
+		print "<ardbeg> Downloading S3 templates "+version
 		keys = TemplateBucket.list(prefix=version)
 		for k in keys:
 			#avoiding directory keys in a dumb way...
@@ -171,12 +173,20 @@ class publisher(object):
 				upload(PublishBucket,self.outputPath,destDir)
 			if RepoBucket:
 				archive(RepoBucket,os.getcwd(),destDir)
+			savout = os.dup(1)
+			os.close(1)
+			os.open(os.devnull, os.O_RDWR)
+			try:
+			   webbrowser.open("https://www.youtube.com/watch?v=_6P_cFtOP2M")
+			finally:
+			   os.dup2(savout, 1)
+
 		if develop:
 			self.render_templates()
 			self.copy_static()
-			self.logger.info("Watching '%s' for changes..." % ROOT)
-			self.logger.info("Serving on port 4242")
-			self.logger.info("Press Ctrl+C to stop.")
+			self.logger.info("<ardbeg> Watching '%s' for changes..." % ROOT)
+			self.logger.info("<ardbeg> Serving on port 4242")
+			self.logger.info("<ardbeg> Press Ctrl+C to stop.")
 			tinkerer(self).develop()
 
 	def copy_static(self):
@@ -188,7 +198,7 @@ class publisher(object):
 		recursive_delete(self.outputPath)
 		try:
 			template = self._env.get_template('content/index.html')
-			self.logger.info(">>> Rendering %s..." % template.name)
+			self.logger.info("<ardbeg> Rendering %s..." % template.name)
 			dataContext = self.dataLoad()
 			template.stream(dataContext).dump(os.path.join(self.outputPath,'index.html'))
 		except Exception:
@@ -196,7 +206,7 @@ class publisher(object):
 
 		for file in os.listdir(self.contentPath):
 			template = self._env.get_template('content/'+file)
-			self.logger.info(">>> Rendering %s..." % template.name)
+			self.logger.info("<ardbeg> Rendering %s..." % template.name)
 			dataContext = self.dataLoad()
 			template.stream(dataContext).dump(os.path.join(self.outputPath,file))
 
