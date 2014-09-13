@@ -4,8 +4,9 @@
 """ardbeg
 
 Usage:
-  ardbeg develop [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
-  ardbeg publish [--outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  ardbeg develop [--TempVersion=<TempVersion> --outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  ardbeg publish [--TempVersion=<TempVersion> --outputPath=<outputPath> --dataPath=<dataPath> --homePath=<homePath> --staticPath=<staticPath> --templatePath=<templatePath> --contentPath=<contentPath> ]
+  ardbeg init [--TempVersion=<TempVersion>]
   ardbeg (-h | --help) --pagepath=<pagepath>
   ardbeg --version
 
@@ -18,44 +19,41 @@ from docopt import docopt
 import os
 import sys
 import ardbeg
+from ardbeg import directory_check, argCheck
+
+
+
 
 def start():
-    arguments = docopt(__doc__, version='ardbeg 0.0.1')
+    docArgs = docopt(__doc__, version='ardbeg 0.0.1')
+    
+    #Must be run from root of project directory
+    ROOT = os.getcwd()
 
-    def argcheck(argString,default):
-      if arguments[argString] is not None:
-          direct = arguments[argString]
-      else:
-          direct = os.path.join(os.getcwd(),default)
-      if not os.path.exists(direct):
-          print("The directory '%s' is invalid."
-                % direct)
-          sys.exit(1)
-      return direct
+    develop = docArgs['develop']
+    publish = docArgs['publish']
+    init = docArgs['init']
 
-    #Defaults
-    homePath = argcheck('--homePath','')
-    templatePath   = argcheck('--templatePath','templates')
-    staticPath = argcheck('--staticPath','static' )
-    outputPath    = argcheck('--outputPath','rendered' )
-    contentPath   = argcheck('--contentPath','content'   )
-    dataPath   = argcheck('--dataPath','data'   )
+    if init:
+    	initialize()
+    else:
+	    homePath = ROOT
+	    templatePath   = directory_check(argCheck(docArgs,'--templatePath','templates'))
+	    staticPath = directory_check(argCheck(docArgs,'--staticPath','static' ))
+	    outputPath    = directory_check(argCheck(docArgs,'--outputPath','rendered' ))
+	    contentPath   = directory_check(argCheck(docArgs,'--contentPath','content'   ))
+	    dataPath   = directory_check(argCheck(docArgs,'--dataPath','data'   ))
 
+	    publisher = ardbeg.make_publisher(
+	        homePath = homePath    , 
+	    templatePath = templatePath,
+	    staticPath   = staticPath  ,
+	    outputPath   = outputPath  ,
+	    contentPath  = contentPath ,
+	    dataPath     = dataPath    ,
+	    )
 
-    publisher = ardbeg.make_publisher(
-        homePath     = homePath    , 
-    templatePath = templatePath,
-    staticPath   = staticPath  ,
-    outputPath   = outputPath  ,
-    contentPath  = contentPath ,
-    dataPath     = dataPath    ,
-    )
-
-
-    develop = arguments['develop']
-    publish = arguments['publish']
-
-    publisher.run(develop=develop,publish=publish)
+	    publisher.run(develop=develop,publish=publish)
 
 
 if __name__ == '__main__':

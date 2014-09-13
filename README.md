@@ -47,7 +47,7 @@ Ardbeg looks for:
 - AWS_PUBLISH_BUCKET
 - AWS_REPO_BUCKET
 
-`ardbeg publish` will publish your rendered site to S3 under a key directory based on your outer project folder name prepended with the current year.
+`ardbeg publish` will upload your rendered site to S3 under a key directory based on your outer project folder name prepended with the current year.
 
 -----------------
 
