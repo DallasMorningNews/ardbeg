@@ -14,14 +14,14 @@ import table_fu
 ROOT = os.getcwd()
 
 def get_settings():	
-    try:
-        SETTINGS = {}
-        execfile('settings.py',SETTINGS)
-    except Exception:
-        print "!#!#!# Settings file not found in project root! Add one. (see README)"
-        sys.exit(1)
-    return SETTINGS
-SETTINGS = get_settings()
+	global SETTINGS
+	try:
+		SETTINGS = {}
+		execfile('settings.py',SETTINGS)
+	except Exception:
+		print "!#!#!# Settings file not found in project root! Add one. (see README)"
+		sys.exit(1)
+
 
 def jinja_env(templatePath,contentPath,homePath=None):
 	loader = PrefixLoader({
@@ -38,28 +38,32 @@ def initialize():
 	print ">>> Making development directory."
 	directoryDefaultWriter()
 	#dumb check for S3 creds
+	get_settings()
 	if SETTINGS.get('AWS_TEMPLATE_BUCKET',None) or os.environ.get('AWS_TEMPLATE_BUCKET'):
 		loadTemplates(TemplateBucket)
 	else:
-		print "No S3 template repo found."
+		print ">>> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
+	print ">>> Development directory ready."
+
 
 def directoryDefaultWriter():
 	directories = ['templates','static','rendered','content','data']
 	for d in directories:
 		makeDirect(os.path.join(ROOT,d))
 	#Inelegant, this...
-	try:
-		open(os.path.join(ROOT,'index.html'),'a')
-	except:
-		file = open(os.path.join(ROOT,"index.html"), "w")
-    	file.write("{% \extends 'template/build.html'%}\n")
-    	file.close()
-
-	from default_settings import SETTINGS
-	file = open(os.path.join(ROOT,"settings.py"), "w")
-	for key in SETTINGS:
-		file.write(key+"='"+SETTINGS[Key]+"'\n")
-	file.close()
+	if not os.path.isfile(os.path.join(ROOT,'index.html')):
+		file = open(os.path.join(ROOT,"index.html"), "w+")
+		file.write("{% \extends 'template/build.html'%}\n")
+		file.close()
+	if not os.path.isfile(os.path.join(ROOT,'settings.py')):
+		from default_settings import DEFAULTSETTINGS
+		file = open(os.path.join(ROOT,"settings.py"), "w+")
+		for key in DEFAULTSETTINGS:
+			if DEFAULTSETTINGS[key] =='None':
+				file.write(key+"="+DEFAULTSETTINGS[key]+"\n")
+			else:
+				file.write(key+"='"+DEFAULTSETTINGS[key]+"'\n")
+		file.close()
 
 ############################
 ### S3 Publish plus repo ###
@@ -84,7 +88,6 @@ def S3wires():
 		except:
 			bucket = None
 		return bucket
-
 	PublishBucket = get_bucket('AWS_PUBLISH_BUCKET')
 	RepoBucket = get_bucket('AWS_REPO_BUCKET')
 	TemplateBucket = get_bucket('AWS_TEMPLATE_BUCKET')
@@ -147,6 +150,7 @@ class publisher(object):
 		self.logger = logger
 
 	def run(self,publish=False,develop=False):
+		get_settings()
 		if publish:
 			S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 			destDir = str(datetime.datetime.now().year)+"/"+os.path.basename(ROOT)
@@ -305,6 +309,7 @@ def argCheck(docArgs, docString, default=None):
 	'''
 	Checks for value in this heirarchy: console argument > settings variable > default (passed) > None.
 	'''
+	get_settings()
 	settingString = docString.replace('--','')
 	if docArgs[docString] is not None:
 		variable = docArgs[docString]

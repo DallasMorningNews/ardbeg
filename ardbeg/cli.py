@@ -18,8 +18,7 @@ Options:
 from docopt import docopt
 import os
 import sys
-import ardbeg
-from ardbeg import directory_check, argCheck
+from ardbeg import directory_check, argCheck, make_publisher, initialize
 
 
 
@@ -44,7 +43,7 @@ def start():
 	    contentPath   = directory_check(argCheck(docArgs,'--contentPath','content'   ))
 	    dataPath   = directory_check(argCheck(docArgs,'--dataPath','data'   ))
 
-	    publisher = ardbeg.make_publisher(
+	    publisher = make_publisher(
 	        homePath = homePath    , 
 	    templatePath = templatePath,
 	    staticPath   = staticPath  ,
@@ -54,6 +53,8 @@ def start():
 	    )
 
 	    publisher.run(develop=develop,publish=publish)
+
+
 
 
 if __name__ == '__main__':
