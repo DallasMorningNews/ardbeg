@@ -95,8 +95,6 @@ def S3wires():
 	TemplateBucket = get_bucket('AWS_TEMPLATE_BUCKET')
 	return S3,PublishBucket,RepoBucket,TemplateBucket
 
-
-
 def upload(bucket,sourceDir,destDir):
     k = boto.s3.key.Key(bucket)
     for path,dir,files in os.walk(sourceDir): 
