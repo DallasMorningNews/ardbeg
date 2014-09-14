@@ -21,5 +21,6 @@ setup(
         "easywatch",
         "python-tablefu",
         "boto",
+        "libsass >= 0.5.0",
     ],
 )

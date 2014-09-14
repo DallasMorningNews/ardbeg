@@ -11,6 +11,7 @@ import zipfile
 from jinja2 import Environment, FileSystemLoader, PrefixLoader
 import table_fu
 import webbrowser
+import sass
 
 ROOT = os.getcwd()
 
@@ -190,6 +191,7 @@ class publisher(object):
 	def copy_static(self):
 		staticWrite = os.path.join(self.outputPath,os.path.basename(os.path.normpath(self.staticPath)))
 		shutil.copytree(self.staticPath,staticWrite)
+		sassCompiler(staticWrite)
 
 	def render_templates(self):
 		#render index.html in project root first, IF it exists
@@ -343,3 +345,15 @@ def makeDirect(directory):
 		os.makedirs(directory)
 
 
+def sassCompiler(directory):
+	for root,dirs,files in os.walk(directory):
+		for file in files:
+			extension = os.path.splitext(file)[1][1:].strip().lower()
+			print "Extension: "+extension
+			if extension == "sass":
+				with open (os.path.join(root,file), "r") as sassFile:
+					string = sassFile.read().replace('\n','')
+					cssFile = open(os.path.join(root,os.path.splitext(file)[0]+".css"),"w+")
+					cssFile.write(sass.compile(string=string))
+					cssFile.close()
+				os.remove(os.path.join(root,file))
