@@ -69,11 +69,11 @@ Ardbeg uses these variables:
 
 You may also use an S3 bucket to store templates you frequently use to render content pages.
 
-Set `AWS_TEMPLATE_BUCKET` environment variable or in settings.py. Optionally, set `TempVersion` in settings.py or pass via console option to select templates in a certain directory of your S3 bucket.
+Set `AWS_TEMPLATE_BUCKET` environment variable or in settings.py. Optionally, set `TempVersion` in settings.py or pass via console option to download only templates in a certain directory of your S3 bucket.
 
 Templates are downloaded to the templates directory under sub-directory `s3-templates/` whenever you run `ardbeg init` and also on `ardbeg publish` before rendering your site. 
 
-**Note:** The `s3-templates/` directory is cleare every time before S3 templates are loaded. So put your custom, site specific templates outside this directory. 
+**Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site specific templates outside this directory. 
 
 -----------------
 
