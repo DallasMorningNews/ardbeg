@@ -5,7 +5,7 @@ Ardbeg is a python static site generator. It uses Jinja2 to renderer templates a
 
 But Ardbeg likes things done a certain way. It insists on a distributed directory development environment. Why distributed? Because at _The Dallas Morning News_ we take our Ardbeg neat and opinionated.
 
-Ardbeg is designed for the way we work, one project at a time, usually in isolation.
+Ardbeg is designed for the way we work, one story at a time.
 
 ##Installation
 ```pip install ardbeg```
@@ -15,9 +15,9 @@ Ardbeg is designed for the way we work, one project at a time, usually in isolat
 ###Directories
 Ardbeg insists on a certain directory structure for your projects.
 
-Luckily we make creating it easy. 
+Luckily Ardbeg makes creating it easy. 
 
-Run `ardbeg init` in an empty directory (ie, the project root, where all Ardbeg commands should be run from...). 
+Run `ardbeg init` in an empty directory (ie, the project root, where all Ardbeg commands should be run from...). Ardbeg creates the following directory tree: 
 ```
 |--project/
 |  |--index.html
@@ -29,8 +29,8 @@ Run `ardbeg init` in an empty directory (ie, the project root, where all Ardbeg 
 |  |--rendered/
 ```
 - **templates/** - Ardbeg will recursively search this directory for templates and partials to render content with. You may have any nested directory structure in this folder, but all templates found by Jinja will be exposed as `templates/<template name>`. That means a flat namespace, so mind contradictions.
-- **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the `index.html` in the root of the project. 
-- **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale, because Ardbeg just don't give a damn. Use relative references to these files in your templates.
+- **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the `index.html` in the root of the project. Content is exposed as `content/<page name>`.
+- **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale. Use relative references to these files in your templates.
 - **data/** - Put CSV files with structured data in this directory, and Ardbeg will expose the data in your templates' context. For example, if you put `people.csv` in this directory (with a header row), it's data can be used in your template like this:
 ```
 {%for row in people.rows%}
@@ -78,7 +78,7 @@ Templates are downloaded to the templates directory under a sub-directory `s3-te
 Enter `ardbeg --help` for a list of available console commands.
 
 -----------------
-
+##Ardbeg apps taste like
 - **Nose:** A ridge of vanilla leads to mountain of peat capped with citrus fruits and circled by clouds of sea spray.
 - **Palate:** Sweet vanilla counterbalanced with lemon and lime followed by that surging Ardbeg smoke that we all know and love.
 - **Finish:** Long and glorious; sea salted caramel and beach bonfire smoke.
