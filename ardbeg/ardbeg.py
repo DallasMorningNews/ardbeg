@@ -24,14 +24,12 @@ def get_settings():
 		print "!#!#!# Settings file not found in project root! Add one. (see README)"
 		sys.exit(1)
 
-
 def jinja_env(templatePath,contentPath,homePath=None):
 	loader = PrefixLoader({
     		'template':FileSystemLoader(absoluteList(templatePath)),
     		'content' :FileSystemLoader(absoluteList(contentPath)+[absolutePath(homePath)])
     	})
 	return Environment(loader=loader)
-
 
 ################
 ## Init funcs ##
@@ -47,7 +45,6 @@ def initialize():
 	else:
 		print "<ardbeg> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
 	print "<ardbeg> Development directory ready."
-
 
 def directoryDefaultWriter():
 	directories = ['templates','static','rendered','content','data']
@@ -69,7 +66,7 @@ def directoryDefaultWriter():
 		file.close()
 
 ############################
-### S3 Publish plus repo ###
+### S3 Publish functions ###
 ############################
 
 import boto, boto.s3
@@ -112,9 +109,10 @@ def archive(bucket,sourceDir,destDir):
 	k = boto.s3.key.Key(bucket)
 	zf = zipfile.ZipFile("temp.zip", "w")
 	for path,dir,files in os.walk(sourceDir):
-		zf.write(path)
 		for file in files:
-			zf.write(os.path.join(path,file))
+			if file != 'temp.zip':
+				relpath = os.path.join(os.path.basename(ROOT),os.path.relpath(os.path.join(path,file),ROOT))
+				zf.write(os.path.join(path,file),relpath,zipfile.ZIP_DEFLATED)
 	zf.close()
 	print '<ardbeg> Archiving %s in S3 bucket %s' % (sourceDir, bucket)
 	now = datetime.datetime.now()
@@ -136,8 +134,8 @@ def loadTemplates(TemplateBucket):
 			if not k.key.endswith('/'):
 				keyString = str(k.key)
 				k.get_contents_to_filename(os.path.join(localDir+keyString))
-#############################################################################################
 
+#############################################################################################
 
 class publisher(object):
 	def __init__(self,environment,homePath,staticPath,templatePath,contentPath,dataPath,outputPath,logger):
@@ -171,7 +169,7 @@ class publisher(object):
 			if PublishBucket:
 				upload(PublishBucket,self.outputPath,destDir)
 			if RepoBucket:
-				archive(RepoBucket,os.getcwd(),destDir)
+				archive(RepoBucket,ROOT,destDir)
 			savout = os.dup(1)
 			os.close(1)
 			os.open(os.devnull, os.O_RDWR)
@@ -210,17 +208,6 @@ class publisher(object):
 			dataContext = self.dataLoad()
 			template.stream(dataContext).dump(os.path.join(self.outputPath,file))
 
-		##RECURSIVE content directory??? --have to render static references relative...
-		# for directory,subs,files in os.walk(self.contentPath):
-		# 	for file in files:
-		# 		template = self._env.get_template('content/'+file)
-		# 		self.logger.info("Rendering %s..." % template.name)
-		# 		dataContext = self.dataLoad()
-		# 		mkdir = os.path.join(self.outputPath,os.path.relpath(directory,self.contentPath))
-		# 		if not os.path.exists(mkdir):
-		# 			os.makedirs(mkdir)
-		# 		template.stream(dataContext).dump(os.path.join(self.outputPath,os.path.relpath(os.path.join(directory,file),self.contentPath)))
-
 	def dataLoad(self):
 		contexts={}
 		for file in os.listdir(self.dataPath):
@@ -231,7 +218,7 @@ class publisher(object):
 class tinkerer(object):
 	def __init__(self, publisher):
 		self.publisher = publisher 
-		self.searchpath = os.getcwd()
+		self.searchpath = ROOT
 
 	def should_handle(self, event_type, filename):
 		#check to make sure file isn't in rendered path/prevent recursion
@@ -307,8 +294,7 @@ def recursive_delete(delPath):
 
 def absolutePath(path):
 	if not os.path.isabs(path):
-		project_path = os.getcwd()
-		return os.path.join(project_path, path)
+		return os.path.join(ROOT, path)
 	return path
 
 def absoluteList(path):
@@ -333,7 +319,7 @@ def argCheck(docArgs, docString, default=None):
 
 def directory_check(directory):
 	if not os.path.isabs(directory):
-		directory = os.path.join(os.getcwd(),directory)
+		directory = os.path.join(ROOT,directory)
 	if not os.path.exists(directory):
 		print "!#!#!# The directory '%s' is invalid." % directory
 		sys.exit(1)
@@ -344,12 +330,10 @@ def makeDirect(directory):
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 
-
 def sassCompiler(directory):
 	for root,dirs,files in os.walk(directory):
 		for file in files:
 			extension = os.path.splitext(file)[1][1:].strip().lower()
-			print "Extension: "+extension
 			if extension == "sass":
 				with open (os.path.join(root,file), "r") as sassFile:
 					string = sassFile.read().replace('\n','')
