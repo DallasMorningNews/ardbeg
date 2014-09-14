@@ -20,8 +20,8 @@ Luckily we make creating it easy.
 Run `ardbeg init` in an empty directory (ie, the project root, where all Ardbeg commands should be run from...). 
 ```
 |--project/
-|  |--<index.html>
-|  |--<settings.py>
+|  |--index.html
+|  |--settings.py
 |  |--templates/
 |  |--content/
 |  |--static/
@@ -29,9 +29,9 @@ Run `ardbeg init` in an empty directory (ie, the project root, where all Ardbeg 
 |  |--rendered/
 ```
 - **templates/** - Ardbeg will recursively search this directory for templates and partials to render content with. You may have any nested directory structure in this folder, but all templates found by Jinja will be exposed as `templates/<template name>`. That means a flat namespace, so mind contradictions.
-- **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the index.html in the root of the project. 
-- **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale, because Ardbeg just don't give a damn. Use relative references to these your files.
-- **data/** - Put CSV files with structured data in this directory, and Ardbeg will expose the data in your templates' context. For example, if you put `people.csv` in this directory, it's data can be used in your template like this:
+- **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the `index.html` in the root of the project. 
+- **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale, because Ardbeg just don't give a damn. Use relative references to these files in your templates.
+- **data/** - Put CSV files with structured data in this directory, and Ardbeg will expose the data in your templates' context. For example, if you put `people.csv` in this directory (with a header row), it's data can be used in your template like this:
 ```
 {%for row in people.rows%}
 <h4>{{row.FirstName}} {{row.LastName}}</h4>
@@ -48,15 +48,15 @@ Alternatively, you may set the locations of these directories through console op
 - `dataPath`
 - `outputPath`
 
-**NOTE:** Ardbeg insists a settings.py live in the root directory of your project. It does *not* insist that file actually contains any settings...
+**NOTE:** Ardbeg insists a `settings.py` live in the root directory of your project. It does *not* insist that file actually contains any settings...
 
 ###Develop
-`ardbeg develop` will render your templates and startup a Python SimpleHTTPServer in the rendered directory on localhost:4242. It will also watch for any changes you make in the project directory and automatically re-render your templates on save.
+`ardbeg develop` will render your templates and startup a Python SimpleHTTPServer in the rendered directory on [localhost:4242](http://localhost:4242). It will also watch for any changes you make in the project directory and automatically re-render your templates on save.
 
 ###Publish
 Ardbeg can publish your site to an Amazon S3 bucket.
 
-S3 settings are usually exposed through environment variables, but you may also set them in settings.py.
+S3 settings are usually exposed through environment variables, but you may also set them in `settings.py`.
 
 Ardbeg uses these variables:
 
@@ -69,11 +69,13 @@ Ardbeg uses these variables:
 
 You may also use an S3 bucket to store templates you frequently use to render content pages.
 
-Set `AWS_TEMPLATE_BUCKET` environment variable or in settings.py. Optionally, set `TempVersion` in settings.py or pass via console option to download only templates in a certain directory of your S3 bucket.
+Set `AWS_TEMPLATE_BUCKET` environment variable or in `settings.py`. Optionally, set `TempVersion` in `settings.py` or pass via console option to download only templates in a certain directory of your S3 bucket.
 
-Templates are downloaded to the templates directory under sub-directory `s3-templates/` whenever you run `ardbeg init` and also on `ardbeg publish` before rendering your site. 
+Templates are downloaded to the templates directory under a sub-directory `s3-templates/` whenever you run `ardbeg init` and also on `ardbeg publish` before rendering your site. 
 
 **Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site specific templates outside this directory. 
+
+Enter `ardbeg --help` for a list of available console commands.
 
 -----------------
 
