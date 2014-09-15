@@ -34,27 +34,35 @@ def jinja_env(templatePath,contentPath,homePath=None):
 ################
 ## Init funcs ##
 ################
+'''
+Init funcs need to be safe to run repeatedly on working directory in order to load templates 
+after adding directory to settings.py.
+'''
 def initialize():
 	print "<ardbeg> Making development directory."
+	write_settings()
+	get_settings()
 	directoryDefaultWriter()
 	#dumb check for S3 creds
-	get_settings()
 	if SETTINGS.get('AWS_TEMPLATE_BUCKET',None) or os.environ.get('AWS_TEMPLATE_BUCKET'):
 		S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 		loadTemplates(TemplateBucket)
 	else:
 		print "<ardbeg> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
+	pull_index(os.path.join(ROOT,SETTINGS.get('templatePath')))
+	pull_static( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
 	print "<ardbeg> Development directory ready."
 
 def directoryDefaultWriter():
-	directories = ['templates','static','rendered','content','data']
+	directories = ['template','static','rendered','content','data']
 	for d in directories:
 		makeDirect(os.path.join(ROOT,d))
-	#Inelegant, this...
-	if not os.path.isfile(os.path.join(ROOT,'index.html')):
-		file = open(os.path.join(ROOT,"index.html"), "w+")
-		file.write("{% \extends 'template/build.html'%}\n")
-		file.close()
+	
+
+def write_settings():
+	'''
+	Write settings from default if doesn't already exist.
+	'''
 	if not os.path.isfile(os.path.join(ROOT,'settings.py')):
 		from default_settings import DEFAULTSETTINGS
 		file = open(os.path.join(ROOT,"settings.py"), "w+")
@@ -64,6 +72,41 @@ def directoryDefaultWriter():
 			else:
 				file.write(key+"='"+DEFAULTSETTINGS[key]+"'\n")
 		file.close()
+
+def pull_index(templatePath):
+	'''
+	Check first if no index.html then write a blank one.
+	Then check for index.html in loaded templates. If one exists, replace for blank
+	index.html.
+	'''
+	if not os.path.isfile(os.path.join(ROOT,'index.html')):
+		with open(os.path.join(ROOT,"index.html"), "w+"): pass
+	if open(os.path.join(ROOT,"index.html"), "r").read() == "":
+		for path,subdirs,files in os.walk(templatePath):
+			for file in files:
+				if file.lower() == "index.html":
+					readFile = open(os.path.join(path,file),"r+")
+					copy = readFile.read()
+					writeFile = open(os.path.join(ROOT,"index.html"),"w+")
+					writeFile.write(copy)
+					writeFile.close()
+					readFile.close()
+				os.remove(os.path.join(path,file))
+
+
+def pull_static(staticPath,templatePath):
+	'''
+	Check for static directory in loaded templates. If exists and staticPath in
+	dev is empty, replace. Remove static directory.
+	'''
+	for path,subdirs,files in os.walk(templatePath):
+		for subdir in subdirs:
+			if subdir == 'static':
+				if not os.listdir(staticPath): 
+					os.rmdir(staticPath)
+					shutil.copytree(os.path.join(path,subdir),staticPath)
+				shutil.rmtree(os.path.join(path,subdir))
+
 
 ############################
 ### S3 Publish functions ###
@@ -123,8 +166,8 @@ def archive(bucket,sourceDir,destDir):
 
 def loadTemplates(TemplateBucket):
 	if TemplateBucket:
-		version = SETTINGS.get('TempVersion',None) or argCheck(docArgs,'--TempVersion')
-		localDir = os.path.join(ROOT,'templates/s3-templates/')
+		version = SETTINGS.get('templateVersion',None) or ''#argCheck(docArgs,'--templateVersion')
+		localDir = os.path.join(ROOT,SETTINGS.get('templatePath')+'/s3-templates/')
 		recursive_delete(localDir)
 		makeDirect(os.path.join(localDir,version))
 		print "<ardbeg> Downloading S3 templates "+version
@@ -133,7 +176,12 @@ def loadTemplates(TemplateBucket):
 			#avoiding directory keys in a dumb way...
 			if not k.key.endswith('/'):
 				keyString = str(k.key)
+				print keyString
 				k.get_contents_to_filename(os.path.join(localDir+keyString))
+			else:
+				keyString = str(k.key)
+				print keyString
+				makeDirect(os.path.join(localDir+keyString))
 
 #############################################################################################
 
@@ -215,6 +263,13 @@ class publisher(object):
 			contexts[ os.path.splitext(os.path.basename(file))[0] ] = table
 		return contexts
 		
+
+
+
+
+
+
+
 class tinkerer(object):
 	def __init__(self, publisher):
 		self.publisher = publisher 

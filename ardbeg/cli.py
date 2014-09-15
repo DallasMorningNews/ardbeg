@@ -34,7 +34,7 @@ def start():
     	initialize()
     else:
 	    homePath = ROOT
-	    templatePath   = directory_check(argCheck(docArgs,'--templatePath','templates'))
+	    templatePath   = directory_check(argCheck(docArgs,'--templatePath','template'))
 	    staticPath = directory_check(argCheck(docArgs,'--staticPath','static' ))
 	    outputPath    = directory_check(argCheck(docArgs,'--outputPath','rendered' ))
 	    contentPath   = directory_check(argCheck(docArgs,'--contentPath','content'   ))
