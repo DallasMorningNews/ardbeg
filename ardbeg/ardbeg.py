@@ -91,7 +91,7 @@ def pull_index(templatePath):
 					writeFile.write(copy)
 					writeFile.close()
 					readFile.close()
-				os.remove(os.path.join(path,file))
+					os.remove(os.path.join(path,file))
 
 
 def pull_static(staticPath,templatePath):
@@ -102,8 +102,8 @@ def pull_static(staticPath,templatePath):
 	for path,subdirs,files in os.walk(templatePath):
 		for subdir in subdirs:
 			if subdir == 'static':
-				if not os.listdir(staticPath): 
-					os.rmdir(staticPath)
+				if len(os.listdir(staticPath))==0: 
+					shutil.rmtree(staticPath)
 					shutil.copytree(os.path.join(path,subdir),staticPath)
 				shutil.rmtree(os.path.join(path,subdir))
 
