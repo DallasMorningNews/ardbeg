@@ -176,11 +176,9 @@ def loadTemplates(TemplateBucket):
 			#avoiding directory keys in a dumb way...
 			if not k.key.endswith('/'):
 				keyString = str(k.key)
-				print keyString
 				k.get_contents_to_filename(os.path.join(localDir+keyString))
 			else:
 				keyString = str(k.key)
-				print keyString
 				makeDirect(os.path.join(localDir+keyString))
 		pull_index(os.path.join(ROOT,SETTINGS.get('templatePath')))
 		pull_static( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
