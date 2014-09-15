@@ -58,10 +58,9 @@ def directoryDefaultWriter():
 	for d in directories:
 		makeDirect(os.path.join(ROOT,d))
 	
-
 def write_settings():
 	'''
-	Write settings from default if doesn't already exist.
+	Write settings.py from default_settings if doesn't already exist.
 	'''
 	if not os.path.isfile(os.path.join(ROOT,'settings.py')):
 		from default_settings import DEFAULTSETTINGS
@@ -75,9 +74,9 @@ def write_settings():
 
 def pull_index(templatePath):
 	'''
-	Check first if no index.html then write a blank one.
-	Then check for index.html in loaded templates. If one exists, replace for blank
-	index.html.
+	If no index.html in project root, write a blank one.
+	Then check for index.html in loaded templates. If one exists, move to root unless 
+	non-blank index.html already there.
 	'''
 	if not os.path.isfile(os.path.join(ROOT,'index.html')):
 		with open(os.path.join(ROOT,"index.html"), "w+"): pass
@@ -102,6 +101,7 @@ def pull_static(staticPath,templatePath):
 	for path,subdirs,files in os.walk(templatePath):
 		for subdir in subdirs:
 			if subdir == 'static':
+				#if empty directory, copy to staticPath
 				if len(os.listdir(staticPath))==0: 
 					shutil.rmtree(staticPath)
 					shutil.copytree(os.path.join(path,subdir),staticPath)
@@ -182,6 +182,9 @@ def loadTemplates(TemplateBucket):
 				keyString = str(k.key)
 				print keyString
 				makeDirect(os.path.join(localDir+keyString))
+		pull_index(os.path.join(ROOT,SETTINGS.get('templatePath')))
+		pull_static( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
+	
 
 #############################################################################################
 
@@ -263,12 +266,6 @@ class publisher(object):
 			contexts[ os.path.splitext(os.path.basename(file))[0] ] = table
 		return contexts
 		
-
-
-
-
-
-
 
 class tinkerer(object):
 	def __init__(self, publisher):
