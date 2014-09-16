@@ -352,9 +352,6 @@ def absoluteList(path):
 	return [direct[0] for direct in os.walk(path)]
 
 def argCheck(settingString):
-	'''
-	Checks for value in this heirarchy: console argument > settings variable > default (passed) > None.
-	'''
 	getSettings()
 	try:
 		variable = directoryCheck(SETTINGS[settingString])

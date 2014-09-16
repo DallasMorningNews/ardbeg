@@ -13,7 +13,7 @@ Ardbeg is designed for the way we work, one story at a time.
 ##Ardbeg functions
 
 - `ardbeg init`
-- `ardbeg develop`
+- `ardbeg develop --port`
 - `ardbeg publish`
 
 
@@ -84,9 +84,7 @@ You may also use an S3 bucket to store templates you frequently use to render co
 
 Templates are downloaded to the templates directory under a sub-directory `s3-templates/` whenever you run `ardbeg init` or `ardbeg publish` before rendering your site. 
 
-**Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site specific templates outside this directory. 
-
-Enter `ardbeg --help` for a list of available console commands.
+**Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site specific templates outside this directory.
 
 -----------------
 ##Ardbeg static sites like
