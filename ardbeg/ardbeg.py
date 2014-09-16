@@ -159,7 +159,7 @@ def archive(bucket,sourceDir,destDir):
 	zf.close()
 	print '<ardbeg> Archiving %s in S3 bucket %s' % (sourceDir, bucket)
 	now = datetime.datetime.now()
-	k.key = str(now.year)+"/"+os.path.basename(sourceDir)
+	k.key = destDir
 	k.set_contents_from_filename('temp.zip')
 	k.set_acl('public-read')
 	os.remove('temp.zip')
