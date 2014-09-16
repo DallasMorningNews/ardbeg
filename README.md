@@ -36,8 +36,8 @@ Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbe
 ```
 - **template/** - Ardbeg will recursively search this directory for templates and partials to render content with. You may have any nested directory structure in this folder, but all templates found by Jinja will be exposed as `template/<template name>`. That means a flat namespace, so mind contradictions.
     - **You can also** specify default static files and a default html page in this directory. Both are especially useful if loading templates from S3 (see Publish):
-        - _On `ardbeg init` if an `index.html` exists anywhere in `template/`, it is moved to the root of your project unless a non-blank `index.html` is already there._
-        - _If Ardbeg finds a directory called static files, it is moved to the `staticPath` directory, unless that directory is not empty._
+        - On `ardbeg init` if an `index.html` exists anywhere in `template/`, it is moved to the root of your project _unless a non-blank `index.html` is already there._
+        - If Ardbeg finds a directory called static files, it is moved to the `staticPath` directory, _unless that directory is not empty._
 - **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the `index.html` in the root of the project. Content is exposed as `content/<page name>`.
 - **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale. Use relative references to these files in your templates. Ardbeg also automatically compiles any files in this folder with the extension `.sass` from SASS files into CSS.
 - **data/** - Put CSV files with structured data in this directory, and Ardbeg will expose the data in your templates' context. For example, if you put `people.csv` in this directory (with a header row), it's data can be used in your template like this:

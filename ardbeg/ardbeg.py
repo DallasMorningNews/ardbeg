@@ -20,6 +20,9 @@ def getSettings():
 	try:
 		SETTINGS = {}
 		execfile('settings.py',SETTINGS)
+		print dir(SETTINGS)
+		print "-----------------------------"
+		print dir()
 	except Exception:
 		print "!#!#!# Settings file not found in project root! Add one. (see README)"
 		sys.exit(1)
