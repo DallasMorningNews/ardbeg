@@ -15,7 +15,7 @@ import sass
 
 ROOT = os.getcwd()
 
-def get_settings():	
+def getSettings():	
 	global SETTINGS
 	try:
 		SETTINGS = {}
@@ -24,10 +24,10 @@ def get_settings():
 		print "!#!#!# Settings file not found in project root! Add one. (see README)"
 		sys.exit(1)
 
-def jinja_env(templatePath,contentPath,homePath=None):
+def jinjaEnv(templatePath,contentPath):
 	loader = PrefixLoader({
     		'template':FileSystemLoader(absoluteList(templatePath)),
-    		'content' :FileSystemLoader(absoluteList(contentPath)+[absolutePath(homePath)])
+    		'content' :FileSystemLoader(absoluteList(contentPath)+[absolutePath(ROOT)])
     	})
 	return Environment(loader=loader)
 
@@ -40,8 +40,8 @@ after adding directory to settings.py.
 '''
 def initialize():
 	print "<ardbeg> Making development directory."
-	write_settings()
-	get_settings()
+	writeSettings()
+	getSettings()
 	directoryDefaultWriter()
 	#dumb check for S3 creds
 	if SETTINGS.get('AWS_TEMPLATE_BUCKET',None) or os.environ.get('AWS_TEMPLATE_BUCKET'):
@@ -49,16 +49,16 @@ def initialize():
 		loadTemplates(TemplateBucket)
 	else:
 		print "<ardbeg> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
-	pull_index(os.path.join(ROOT,SETTINGS.get('templatePath')))
-	pull_static( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
+	templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
+	templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
 	print "<ardbeg> Development directory ready."
 
 def directoryDefaultWriter():
 	directories = ['template','static','rendered','content','data']
 	for d in directories:
-		makeDirect(os.path.join(ROOT,d))
+		makeDirectory(os.path.join(ROOT,d))
 	
-def write_settings():
+def writeSettings():
 	'''
 	Write settings.py from default_settings if doesn't already exist.
 	'''
@@ -72,7 +72,7 @@ def write_settings():
 				file.write(key+"='"+DEFAULTSETTINGS[key]+"'\n")
 		file.close()
 
-def pull_index(templatePath):
+def templateIndex(templatePath):
 	'''
 	If no index.html in project root, write a blank one.
 	Then check for index.html in loaded templates. If one exists, move to root unless 
@@ -93,7 +93,7 @@ def pull_index(templatePath):
 					os.remove(os.path.join(path,file))
 
 
-def pull_static(staticPath,templatePath):
+def templateStatic(staticPath,templatePath):
 	'''
 	Check for static directory in loaded templates. If exists and staticPath in
 	dev is empty, replace. Remove static directory.
@@ -125,15 +125,15 @@ def S3wires():
 		print "!#!#!# No S3 credentials passed to Ardbeg. Add some to settings.py. (see README)"
 		sys.exit(1)
 
-	def get_bucket(bucket):
+	def getBucket(bucket):
 		try:
 			bucket = S3.get_bucket(SETTINGS.get(bucket,None) or os.environ.get(bucket))
 		except:
 			bucket = None
 		return bucket
-	PublishBucket = get_bucket('AWS_PUBLISH_BUCKET')
-	RepoBucket = get_bucket('AWS_REPO_BUCKET')
-	TemplateBucket = get_bucket('AWS_TEMPLATE_BUCKET')
+	PublishBucket = getBucket('AWS_PUBLISH_BUCKET')
+	RepoBucket = getBucket('AWS_REPO_BUCKET')
+	TemplateBucket = getBucket('AWS_TEMPLATE_BUCKET')
 	return S3,PublishBucket,RepoBucket,TemplateBucket
 
 def upload(bucket,sourceDir,destDir):
@@ -166,10 +166,10 @@ def archive(bucket,sourceDir,destDir):
 
 def loadTemplates(TemplateBucket):
 	if TemplateBucket:
-		version = SETTINGS.get('templateVersion',None) or ''#argCheck(docArgs,'--templateVersion')
+		version = SETTINGS.get('templateVersion',None) or ''
 		localDir = os.path.join(ROOT,SETTINGS.get('templatePath')+'/s3-templates/')
-		recursive_delete(localDir)
-		makeDirect(os.path.join(localDir,version))
+		recursiveDelete(localDir)
+		makeDirectory(os.path.join(localDir,version))
 		print "<ardbeg> Downloading S3 templates "+version
 		keys = TemplateBucket.list(prefix=version)
 		for k in keys:
@@ -179,26 +179,26 @@ def loadTemplates(TemplateBucket):
 				k.get_contents_to_filename(os.path.join(localDir+keyString))
 			else:
 				keyString = str(k.key)
-				makeDirect(os.path.join(localDir+keyString))
-		pull_index(os.path.join(ROOT,SETTINGS.get('templatePath')))
-		pull_static( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
+				makeDirectory(os.path.join(localDir+keyString))
+		templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
+		templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
 	
 
 #############################################################################################
 
 class publisher(object):
-	def __init__(self,environment,homePath,staticPath,templatePath,contentPath,dataPath,outputPath,logger):
+	def __init__(self,environment,staticPath,templatePath,contentPath,dataPath,outputPath,devPort,logger):
 		self._env = environment
-		self.homePath = homePath
 		self.staticPath = staticPath
 		self.templatePath = templatePath
 		self.contentPath = contentPath
 		self.outputPath = outputPath
 		self.dataPath = dataPath
+		self.devPort = devPort
 		self.logger = logger
 
 	def run(self,publish=False,develop=False):
-		get_settings()
+		getSettings()
 		if publish:
 			S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 			destDir = str(datetime.datetime.now().year)+"/"+os.path.basename(ROOT)
@@ -212,9 +212,9 @@ class publisher(object):
 					destDir=custom
 			loadTemplates(TemplateBucket)
 			#reload jinja env after loading templates
-			self._env=jinja_env(self.templatePath,self.contentPath,self.homePath)
-			self.render_templates()
-			self.copy_static()
+			self._env=jinjaEnv(self.templatePath,self.contentPath)
+			self.renderTemplates()
+			self.copyStatic()
 			if PublishBucket:
 				upload(PublishBucket,self.outputPath,destDir)
 			if RepoBucket:
@@ -228,21 +228,21 @@ class publisher(object):
 			   os.dup2(savout, 1)
 
 		if develop:
-			self.render_templates()
-			self.copy_static()
+			self.renderTemplates()
+			self.copyStatic()
 			self.logger.info("<ardbeg> Watching '%s' for changes..." % ROOT)
-			self.logger.info("<ardbeg> Serving on port 4242")
+			self.logger.info("<ardbeg> Serving on port %s" % self.devPort)
 			self.logger.info("<ardbeg> Press Ctrl+C to stop.")
 			tinkerer(self).develop()
 
-	def copy_static(self):
+	def copyStatic(self):
 		staticWrite = os.path.join(self.outputPath,os.path.basename(os.path.normpath(self.staticPath)))
 		shutil.copytree(self.staticPath,staticWrite)
 		sassCompiler(staticWrite)
 
-	def render_templates(self):
+	def renderTemplates(self):
 		#render index.html in project root first, IF it exists
-		recursive_delete(self.outputPath)
+		recursiveDelete(self.outputPath)
 		try:
 			template = self._env.get_template('content/index.html')
 			self.logger.info("<ardbeg> Rendering %s..." % template.name)
@@ -270,27 +270,27 @@ class tinkerer(object):
 		self.publisher = publisher 
 		self.searchpath = ROOT
 
-	def should_handle(self, event_type, filename):
+	def shouldHandle(self, event_type, filename):
 		#check to make sure file isn't in rendered path/prevent recursion
 		if os.path.relpath(filename,self.publisher.outputPath).startswith('..'):
 		    return (event_type == "modified"
 		            and filename.startswith(self.searchpath))
 
-	def event_handler(self, event_type, src_path):
+	def eventHandler(self, event_type, src_path):
 		filename = os.path.relpath(src_path, self.searchpath)
-		if self.should_handle(event_type, src_path):
-			self.publisher.render_templates()
-			self.publisher.copy_static()
+		if self.shouldHandle(event_type, src_path):
+			self.publisher.renderTemplates()
+			self.publisher.copyStatic()
 
 	def watch(self):
 	    import easywatch
-	    easywatch.watch(self.searchpath, self.event_handler)
+	    easywatch.watch(self.searchpath, self.eventHandler)
 
 	def serve(self):
 	    import SimpleHTTPServer
 	    import SocketServer
 	    os.chdir(self.publisher.outputPath)
-	    PORT = 4242
+	    PORT = int(self.publisher.devPort)
 	    Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
 	    httpd = SocketServer.TCPServer(("", PORT), Handler)
 	    httpd.serve_forever()
@@ -307,26 +307,26 @@ class tinkerer(object):
 	    while True:
 	        time.sleep(1)
 
-def make_publisher(homePath,
-                  staticPath,
+def make_publisher(staticPath,
                   templatePath,
                   contentPath,
                   dataPath,
                   outputPath,
+                  devPort,
                   ):
 
-    environment = jinja_env(templatePath,contentPath,homePath)
+    environment = jinjaEnv(templatePath,contentPath)
     
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
-    return publisher(environment,
-                    homePath=absolutePath(homePath),      
+    return publisher(environment,    
                     staticPath = absolutePath(staticPath),
                     templatePath=absolutePath(templatePath),
                     contentPath=absolutePath(contentPath),
                     dataPath=absolutePath(dataPath),
                     outputPath=absolutePath(outputPath),
+                    devPort = devPort,
                     logger=logger,
                     )
 
@@ -334,7 +334,7 @@ def make_publisher(homePath,
 ## Helper Funcs ##
 ##################
 
-def recursive_delete(delPath):
+def recursiveDelete(delPath):
 	for path,dirs,files in os.walk(delPath):
 		for file in files: 
 			os.remove(os.path.join(path,file))
@@ -351,23 +351,19 @@ def absoluteList(path):
 	path=absolutePath(path)
 	return [direct[0] for direct in os.walk(path)]
 
-def argCheck(docArgs, docString, default=None):
+def argCheck(settingString):
 	'''
 	Checks for value in this heirarchy: console argument > settings variable > default (passed) > None.
 	'''
-	get_settings()
-	settingString = docString.replace('--','')
-	if docArgs[docString] is not None:
-		variable = docArgs[docString]
-	elif SETTINGS.has_key(settingString) and SETTINGS[settingString] is not None:
-		variable = SETTINGS[settingString]
-	elif default is not None:
-		variable = default
-	else:
-		variable = None
+	getSettings()
+	try:
+		variable = directoryCheck(SETTINGS[settingString])
+	except:
+		print "!#!#!# No directory provided for %s. Add one to settings.py."
+		sys.exit(1)
 	return variable
 
-def directory_check(directory):
+def directoryCheck(directory):
 	if not os.path.isabs(directory):
 		directory = os.path.join(ROOT,directory)
 	if not os.path.exists(directory):
@@ -376,7 +372,7 @@ def directory_check(directory):
 	else:
 		return directory
 
-def makeDirect(directory):
+def makeDirectory(directory):
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 

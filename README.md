@@ -21,9 +21,9 @@ Ardbeg is designed for the way we work, one story at a time.
 ###Init / development environment
 Ardbeg insists on a certain directory structure for your projects.
 
-Luckily Ardbeg makes creating it easy. 
+Luckily, Ardbeg makes creating it easy. 
 
-Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbeg commands should be run...). Ardbeg creates the following directory tree: 
+Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbeg commands should be run). Ardbeg creates the following directory tree: 
 ```
 |--project/
 |  |--index.html
@@ -48,47 +48,48 @@ Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbe
 ```
 - **rendered/** - Output directory where Ardbeg renders content and copies your static files.
 
-Alternatively, you may set the locations of these directories through settings.py or environment variables. The relevant variables are:
+Alternatively, you may set the locations of these directories through settings.py. The relevant variables are:
 
-- `homePath` (the project root)
 - `templatePath`
 - `contentPath`
 - `staticPath`
 - `dataPath`
 - `outputPath`
 
-**NOTE:** Ardbeg insists a `settings.py` live in the root directory of your project. It does *not* insist that file actually contains any settings...
+**NOTE:** Ardbeg insists a `settings.py` live in the root directory of your project. It does *not* insist that file actually contain any settings...
 
 **SAFE CODING:**
 `ardbeg init` is designed to be safely run anytime during development. Ardbeg checks to make sure directories are empty and files blank before it writes anything to your development environment. So for example, if you need load S3 templates midway through a project, simply add S3 credentials to settings.py and re-run `ardbeg init`. The templates load into a directory `s3-templates/` but static files and index.html won't be written if these are non-empty in your development environment.
 
 ###Develop
-`ardbeg develop` will render your templates and startup a Python SimpleHTTPServer in the rendered directory on [localhost:4242](http://localhost:4242). It will also watch for any changes you make in the project directory and automatically re-render your templates on save.
+`ardbeg develop` will render your templates and startup a Python SimpleHTTPServer in the rendered directory on [localhost:4242](http://localhost:4242) or whatever port you specify with `--port`. 
+
+In develop, Ardbeg also watches for any changes you make in the project directory and automatically re-renders your templates whenever you save a file.
 
 ###Publish
 Ardbeg can publish your site to an Amazon S3 bucket.
 
-S3 settings are best exposed through environment variables, but you may also set them in `settings.py`.
+S3 settings are best handled by environment variables, but you may also set them in `settings.py`.
 
 Ardbeg uses these variables:
 
 - `AWS_ACCESS_KEY_ID` 
 - `AWS_SECRET_ACCESS_KEY` 
 - `AWS_PUBLISH_BUCKET` 
-- `AWS_REPO_BUCKET` optional. If specified, Ardbeg will zip up your project folder from the root and deposit it here for safekeeping. 
+- `AWS_REPO_BUCKET` optional. If specified, Ardbeg will zip up your project folder from the root and deposit it here for safekeeping.
 
 `ardbeg publish` will upload your rendered site to S3 under a key directory based on your outer project folder name prepended with the current year, though you may set a custom directory name through console prompts.
 
-You may also use an S3 bucket to store templates you frequently use to render content pages. Set `AWS_TEMPLATE_BUCKET` environment variable or in `settings.py`. Optionally, set `TempVersion` in `settings.py` or pass via console option to download only templates in a certain directory of your S3 bucket.
+You may also use an S3 bucket to store templates you frequently use to render content pages. Set `AWS_TEMPLATE_BUCKET` environment variable or in `settings.py`. Optionally, set `templateVersion` in `settings.py` to download only templates in a certain directory of your S3 bucket.
 
-Templates are downloaded to the templates directory under a sub-directory `s3-templates/` whenever you run `ardbeg init` and also on `ardbeg publish` before rendering your site. 
+Templates are downloaded to the templates directory under a sub-directory `s3-templates/` whenever you run `ardbeg init` or `ardbeg publish` before rendering your site. 
 
 **Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site specific templates outside this directory. 
 
 Enter `ardbeg --help` for a list of available console commands.
 
 -----------------
-##Ardbeg apps taste like
+##Ardbeg static sites like
 - **Nose:** A ridge of vanilla leads to mountain of peat capped with citrus fruits and circled by clouds of sea spray.
 - **Palate:** Sweet vanilla counterbalanced with lemon and lime followed by that surging Ardbeg smoke that we all know and love.
 - **Finish:** Long and glorious; sea salted caramel and beach bonfire smoke.

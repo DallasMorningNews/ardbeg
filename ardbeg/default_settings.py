@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 defaults = {
-'homePath     		   ': "", 
 'templatePath 		   ': "template", 
 'templateVersion       ': "",
 'staticPath   		   ': "static", 
