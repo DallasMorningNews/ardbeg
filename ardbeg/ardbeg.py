@@ -12,17 +12,15 @@ from jinja2 import Environment, FileSystemLoader, PrefixLoader
 import table_fu
 import webbrowser
 import sass
+import json
 
 ROOT = os.getcwd()
 
-def getSettings():	
+def getSettings():
 	global SETTINGS
 	try:
-		SETTINGS = {}
-		execfile('settings.py',SETTINGS)
-		print dir(SETTINGS)
-		print "-----------------------------"
-		print dir()
+		SETTINGS = json.load(open('settings','r+'))	
+		print SETTINGS
 	except Exception:
 		print "!#!#!# Settings file not found in project root! Add one. (see README)"
 		sys.exit(1)
@@ -39,7 +37,7 @@ def jinjaEnv(templatePath,contentPath):
 ################
 '''
 Init funcs need to be safe to run repeatedly on working directory in order to load templates 
-after adding directory to settings.py.
+after adding directory to settings.
 '''
 def initialize():
 	print "<ardbeg> Making development directory."
@@ -47,11 +45,11 @@ def initialize():
 	getSettings()
 	directoryDefaultWriter()
 	#dumb check for S3 creds
-	if SETTINGS.get('AWS_TEMPLATE_BUCKET',None) or os.environ.get('AWS_TEMPLATE_BUCKET'):
+	if SETTINGS.get('AWS_ACCESS_KEY_ID',None) or os.environ.get('AWS_ACCESS_KEY_ID'):
 		S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 		loadTemplates(TemplateBucket)
 	else:
-		print "<ardbeg> No S3 template repo found. Can add to setting.py and rerun ardbeg init."
+		print "<ardbeg> --No S3 template repo found. Can add to setting.py and rerun ardbeg init."
 	templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
 	templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
 	print "<ardbeg> Development directory ready."
@@ -63,16 +61,12 @@ def directoryDefaultWriter():
 	
 def writeSettings():
 	'''
-	Write settings.py from default_settings if doesn't already exist.
+	Write settings from default_settings if doesn't already exist.
 	'''
-	if not os.path.isfile(os.path.join(ROOT,'settings.py')):
+	if not os.path.isfile(os.path.join(ROOT,'settings')):
 		from default_settings import DEFAULTSETTINGS
-		file = open(os.path.join(ROOT,"settings.py"), "w+")
-		for key in DEFAULTSETTINGS:
-			if DEFAULTSETTINGS[key] =='None':
-				file.write(key+"="+DEFAULTSETTINGS[key]+"\n")
-			else:
-				file.write(key+"='"+DEFAULTSETTINGS[key]+"'\n")
+		file = open(os.path.join(ROOT,"settings"), "w+")
+		file.write(json.dumps(DEFAULTSETTINGS,sort_keys=True,separators=(',\n',':') ))
 		file.close()
 
 def templateIndex(templatePath):
@@ -118,14 +112,14 @@ def templateStatic(staticPath,templatePath):
 import boto, boto.s3
 from boto.s3.connection import S3Connection
 
-#S3 variables must be set as either environment variables or in settings.py in the project root
+#S3 variables must be set as either environment variables or in settings in the project root
 def S3wires():
 	try:
 		S3access = SETTINGS.get('AWS_ACCESS_KEY_ID',None)     or os.environ.get('AWS_ACCESS_KEY_ID')
 		S3secret = SETTINGS.get('AWS_SECRET_ACCESS_KEY',None) or os.environ.get('AWS_SECRET_ACCESS_KEY')
 		S3 = S3Connection(S3access, S3secret)
 	except:
-		print "!#!#!# No S3 credentials passed to Ardbeg. Add some to settings.py. (see README)"
+		print "!#!#!# No or bad S3 credentials passed to Ardbeg. Add some to settings. (see README)"
 		sys.exit(1)
 
 	def getBucket(bucket):
@@ -133,6 +127,7 @@ def S3wires():
 			bucket = S3.get_bucket(SETTINGS.get(bucket,None) or os.environ.get(bucket))
 		except:
 			bucket = None
+			print "<ardbeg> -- No %s found." % bucket
 		return bucket
 	PublishBucket = getBucket('AWS_PUBLISH_BUCKET')
 	RepoBucket = getBucket('AWS_REPO_BUCKET')
@@ -359,7 +354,7 @@ def argCheck(settingString):
 	try:
 		variable = directoryCheck(SETTINGS[settingString])
 	except:
-		print "!#!#!# No directory provided for %s. Add one to settings.py."
+		print "!#!#!# No directory provided for %s. Add one to settings."
 		sys.exit(1)
 	return variable
 
