@@ -5,8 +5,6 @@ Ardbeg is a python static site generator. It uses Jinja2 to renderer templates a
 
 But Ardbeg likes things done a certain way. It insists on a distributed directory development environment. Why distributed? Because at _The Dallas Morning News_ we take our Ardbeg neat and opinionated.
 
-Ardbeg is designed for the way we work, one story at a time.
-
 ##Installation
 ```pip install ardbeg```
 
@@ -52,6 +50,7 @@ Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbe
     - **You can also** specify default static files and a default html page in this directory. Both are especially useful if loading templates from S3 (see Publish):
         - On `ardbeg init` if an `index.html` exists anywhere in `template/`, it is moved to the root of your project _unless a non-blank `index.html` is already there._
         - If Ardbeg finds a directory called static files, it is moved to the `staticPath` directory, _unless that directory is not empty._
+        
 - **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the `index.html` in the root of the project. Content is exposed as `content/<page name>`.
 - **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale. Use relative references to these files in your templates. Ardbeg also automatically compiles any files in this folder with the extension `.sass` from SASS files into CSS.
 - **data/** - Put CSV files with structured data in this directory, and Ardbeg will expose the data in your templates' context. For example, if you put `people.csv` in this directory (with a header row), it's data can be used in your template like this:
@@ -100,6 +99,3 @@ Templates are downloaded to the templates directory under a sub-directory `s3-te
 - **Palate:** Sweet vanilla counterbalanced with lemon and lime followed by that surging Ardbeg smoke that we all know and love.
 - **Finish:** Long and glorious; sea salted caramel and beach bonfire smoke.
 - **Overall:** Precise balance, big smoke and non-chill filtered. This is why this is such a famous dram.
-
-
-

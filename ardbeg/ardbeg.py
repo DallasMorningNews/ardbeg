@@ -19,7 +19,7 @@ ROOT = os.getcwd()
 def getSettings():
 	global SETTINGS
 	try:
-		SETTINGS = json.load(open('settings','r+'))	
+		SETTINGS = json.load(open(os.path.join(ROOT,'settings')))	
 		print SETTINGS
 	except Exception:
 		print "!#!#!# Settings file not found in project root! Add one. (see README)"
