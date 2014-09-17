@@ -20,7 +20,6 @@ def getSettings():
 	global SETTINGS
 	try:
 		SETTINGS = json.load(open(os.path.join(ROOT,'settings')))	
-		print SETTINGS
 	except Exception:
 		print "!#!#!# Settings file not found in project root! Add one. (see README)"
 		sys.exit(1)
@@ -49,7 +48,7 @@ def initialize():
 		S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 		loadTemplates(TemplateBucket)
 	else:
-		print "<ardbeg> --No S3 template repo found. Can add to setting.py and rerun ardbeg init."
+		print "<ardbeg> --No S3 template repo found. Can add bucket to settings and rerun ardbeg init."
 	templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
 	templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
 	print "<ardbeg> Development directory ready."
@@ -100,13 +99,16 @@ def templateStatic(staticPath,templatePath):
 			if subdir == 'static':
 				#if empty directory, copy to staticPath
 				if len(os.listdir(staticPath))==0: 
+					print "<ardbeg> Copying static files"
 					shutil.rmtree(staticPath)
 					shutil.copytree(os.path.join(path,subdir),staticPath)
+				else:
+					print "<ardbeg> Files in static directory. Cannot copy from template."
 				shutil.rmtree(os.path.join(path,subdir))
 
 
 ############################
-### S3 Publish functions ###
+### S3 publish functions ###
 ############################
 
 import boto, boto.s3
@@ -127,7 +129,7 @@ def S3wires():
 			bucket = S3.get_bucket(SETTINGS.get(bucket,None) or os.environ.get(bucket))
 		except:
 			bucket = None
-			print "<ardbeg> -- No %s found." % bucket
+			print "<ardbeg> -- No %s S3 bucket found." % bucket
 		return bucket
 	PublishBucket = getBucket('AWS_PUBLISH_BUCKET')
 	RepoBucket = getBucket('AWS_REPO_BUCKET')
@@ -168,19 +170,34 @@ def loadTemplates(TemplateBucket):
 		localDir = os.path.join(ROOT,SETTINGS.get('templatePath')+'/s3-templates/')
 		recursiveDelete(localDir)
 		makeDirectory(os.path.join(localDir,version))
-		print "<ardbeg> Downloading S3 templates "+version
+		print "<ardbeg> Loading S3 templates "+version+"..."
 		keys = TemplateBucket.list(prefix=version)
 		for k in keys:
-			#avoiding directory keys in a dumb way...
-			if not k.key.endswith('/'):
-				keyString = str(k.key)
-				k.get_contents_to_filename(os.path.join(localDir+keyString))
-			else:
-				keyString = str(k.key)
+			keyString = str(k.key)
+			if k.key.endswith('/'):
+				#handle folders uploaded alone which have their own keys
 				makeDirectory(os.path.join(localDir+keyString))
+			else:
+				#handle files and files prepended with path
+				makeKeyPath(keyString,localDir)
+				k.get_contents_to_filename(os.path.join(localDir+keyString))
 		templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
 		templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
-	
+
+def makeKeyPath(keyPath,makePath):
+	'''
+	Depending on how things are uploaded to S3, you can have a directory key
+	for each folder	or just a file prepended with a full path, for which we 
+	need to create the directory first. This does that.
+	'''
+	pathList = keyPath.split('/')
+	if len(pathList)>1:
+		for i in range(len(pathList)):
+			makeDir = os.sep.join(pathList[:i])
+			makeDirectory(os.path.join(makePath,makeDir))
+
+
+
 
 #############################################################################################
 
@@ -209,7 +226,7 @@ class publisher(object):
 				else:
 					destDir=custom
 			loadTemplates(TemplateBucket)
-			#reload jinja env after loading templates
+			#Have to reload jinja env after loading templates
 			self._env=jinjaEnv(self.templatePath,self.contentPath)
 			self.renderTemplates()
 			self.copyStatic()
@@ -217,6 +234,7 @@ class publisher(object):
 				upload(PublishBucket,self.outputPath,destDir)
 			if RepoBucket:
 				archive(RepoBucket,ROOT,destDir)
+			#SIP IT, DON'T TIP IT!
 			savout = os.dup(1)
 			os.close(1)
 			os.open(os.devnull, os.O_RDWR)
