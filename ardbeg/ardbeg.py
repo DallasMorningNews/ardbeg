@@ -14,6 +14,7 @@ import webbrowser
 import sass
 import json
 import traceback
+from jinja_filters import func_list
 
 ROOT = os.getcwd()
 
@@ -30,7 +31,11 @@ def jinjaEnv(templatePath,contentPath):
     		'template':FileSystemLoader(absoluteList(templatePath)),
     		'content' :FileSystemLoader(absoluteList(contentPath)+[absolutePath(ROOT)])
     	})
-	return Environment(loader=loader)
+
+	environment = Environment(loader=loader)
+	for func in func_list:
+		environment.filters[func.__name__]=func
+	return environment
 
 ################
 ## Init funcs ##
