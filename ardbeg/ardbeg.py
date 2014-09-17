@@ -13,6 +13,7 @@ import table_fu
 import webbrowser
 import sass
 import json
+import traceback
 
 ROOT = os.getcwd()
 
@@ -264,14 +265,17 @@ class publisher(object):
 			self.logger.info("<ardbeg> Rendering %s..." % template.name)
 			dataContext = self.dataLoad()
 			template.stream(dataContext).dump(os.path.join(self.outputPath,'index.html'))
-		except Exception:
-			pass
-
-		for file in os.listdir(self.contentPath):
-			template = self._env.get_template('content/'+file)
-			self.logger.info("<ardbeg> Rendering %s..." % template.name)
-			dataContext = self.dataLoad()
-			template.stream(dataContext).dump(os.path.join(self.outputPath,file))
+		
+			for file in os.listdir(self.contentPath):
+				template = self._env.get_template('content/'+file)
+				self.logger.info("<ardbeg> Rendering %s..." % template.name)
+				dataContext = self.dataLoad()
+				template.stream(dataContext).dump(os.path.join(self.outputPath,file))
+		except Exception as e:
+			exception_data = traceback.format_exc().splitlines()
+			print "!#!#!# Error rendering templates:"
+			for line in  exception_data[-3:]:
+				print line
 
 	def dataLoad(self):
 		contexts={}

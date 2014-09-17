@@ -5,6 +5,19 @@ Ardbeg is a python static site generator. It uses Jinja2 to renderer templates a
 
 But Ardbeg likes things done a certain way. It insists on a distributed directory development environment. Why distributed? Because at _The Dallas Morning News_ we take our Ardbeg neat and opinionated.
 
+#Features
+- Ardbeg uses Jinja2 templates. They are [powerful](http://jinja.pocoo.org/docs/dev/templates/).
+- Designed for a fully integrated AWS S3 workflow:
+    - Load templates stored in S3 and maintain starter files you use regularly
+    - Easily publish to an S3 bucket for static site hosting
+    - Zip up your working directory and post it to an S3 archive, saving your work exactly as you left it without maintaining files locally.
+- Creates a structured development directory for you and, with S3 hook-ups, loads in all your default templates and static files.
+- Ardbeg's develop mode watches your working files and re-renders your site as you make changes.
+- Ardbeg compiles your SASS files into CSS.
+- Ardbeg makes it easy to create data-rich content in your pages by rendering structured data from CSV files in your template context.
+
+As a Python shop, we think of Ardbeg as Django-lite: the best features of a web framework distilled into a small, highly-portable package. Ardbeg is written in Python for people who don't work in Python. Our designers use it to create stories with rich, interactive content outside our regular CMS.
+
 ##Installation
 ```pip install ardbeg```
 
@@ -13,7 +26,6 @@ But Ardbeg likes things done a certain way. It insists on a distributed director
 - `ardbeg init`
 - `ardbeg develop --port`
 - `ardbeg publish`
-
 
 
 ###Init / development environment
@@ -39,12 +51,12 @@ Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbe
     - `staticPath`
     - `dataPath`
     - `outputPath`
-    - `templateVersion`
     - `AWS_ACCESS_KEY_ID`
     - `AWS_SECRET_ACCESS_KEY`
     - `AWS_PUBLISH_BUCKET`
     - `AWS_REPO_BUCKET`
     - `AWS_TEMPLATE_BUCKET`
+    - `templateVersion`
     
 - **template/** - Ardbeg will recursively search this directory for templates and partials to render content with. You may have any nested directory structure in this folder, but all templates found by Jinja will be exposed as `template/<template name>`. That means a flat namespace, so mind contradictions.
     - **You can also** specify default static files and a default html page in this directory. Both are especially useful if loading templates from S3 (see Publish):
@@ -63,7 +75,7 @@ Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbe
 
 Alternatively, you may set the locations of these directories through the `settings` '...Path' variables.
 
-**NOTE:** Ardbeg insists a `settings` live in the root directory of your project. It does *not* insist that file actually contain any settings...
+**NOTE:** Ardbeg insists a `settings` file live in the root directory of your project. It does *not* insist that file actually contain any settings...
 
 **SAFE CODING:**
 `ardbeg init` is designed to be safely run anytime during development. Ardbeg checks to make sure directories are empty and files blank before it writes anything to your development directory. So for example, if you need to load S3 templates midway through a project, simply add S3 credentials to `settings` and re-run `ardbeg init`. The templates load into a directory `s3-templates/` but static files and index.html won't be written if these are non-empty in your development environment.
@@ -91,7 +103,16 @@ You may also use an S3 bucket to store templates you frequently use to render co
 
 Templates are downloaded to the templates directory under a sub-directory `s3-templates/` whenever you run `ardbeg init` or `ardbeg publish` before rendering your site. 
 
-**Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site specific templates outside this directory.
+**Note:** The `s3-templates/` directory is scotched every time S3 templates are loaded and a fresh install pulled down. So put your custom, site-specific templates outside this directory.
+
+##Credits:
+- `Jinja2`
+- `easywatch`
+- `python-tablefu`
+- `docopt`
+- `boto`
+- `libsass`
+- `staticjinja` - *From whom we stole this idea and some code...*
 
 -----------------
 ##Ardbeg static sites like
