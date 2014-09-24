@@ -231,9 +231,9 @@ class publisher(object):
 					sys.exit(1)
 				else:
 					destDir=custom
-			loadTemplates(TemplateBucket)
+			#loadTemplates(TemplateBucket)
 			#Have to reload jinja env after loading templates
-			self._env=jinjaEnv(self.templatePath,self.contentPath)
+			#self._env=jinjaEnv(self.templatePath,self.contentPath)
 			self.renderTemplates()
 			self.copyStatic()
 			if PublishBucket:
