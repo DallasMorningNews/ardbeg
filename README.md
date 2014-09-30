@@ -13,7 +13,7 @@ But Ardbeg likes things done a certain way. It insists on a distributed director
     - Zip up your working directory and post it to an S3 archive, saving your work exactly as you left it without maintaining files locally.
 - Creates a structured development directory for you and, with S3 hook-ups, loads in all your default templates and static files.
 - Ardbeg's develop mode watches your working files and re-renders your site as you make changes.
-- Ardbeg compiles your SASS/SCSS files into CSS.
+- Ardbeg compiles your [SASS/SCSS](http://sass-lang.com/guide) files into CSS.
 - Ardbeg makes it easy to create data-rich content in your pages by rendering structured data from CSV files in your template context.
 
 As a Python shop, we think of Ardbeg as Django-lite: the best features of a web framework distilled into a small, highly-portable package. Ardbeg is written in Python for people who don't work in Python. Our designers use it to create stories with rich, interactive content outside our regular CMS.
@@ -81,7 +81,7 @@ Alternatively, you may set the locations of these directories through the `setti
 `ardbeg init` is designed to be safely run anytime during development. Ardbeg checks to make sure directories are empty and files blank before it writes anything to your development directory. So for example, if you need to load S3 templates midway through a project, simply add S3 credentials to `settings` and re-run `ardbeg init`. The templates load into a directory `s3-templates/` but static files and index.html won't be written if these are non-empty in your development directory.
 
 ###Develop
-`ardbeg develop` will render your templates and startup a Python SimpleHTTPServer in the rendered directory on [localhost:4242](http://localhost:4242) or whatever port you specify with `--port`. 
+`ardbeg develop` will render your templates and startup a Python SimpleHTTPServer in the rendered directory on [localhost:8000](http://localhost:8000) or whatever port you specify with `--port`. 
 
 In develop, Ardbeg also watches for any changes you make in the project directory and automatically re-renders your templates whenever you save a file.
 

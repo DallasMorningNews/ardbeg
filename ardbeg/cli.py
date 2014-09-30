@@ -42,7 +42,7 @@ def start():
       dataPath = argCheck('dataPath')
 
       if docArgs['--port'] == None:
-          devPort = '4242'
+          devPort = '8000'
       else:
           devPort = docArgs['--port']
 

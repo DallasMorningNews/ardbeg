@@ -182,11 +182,11 @@ def loadTemplates(TemplateBucket):
 			keyString = str(k.key)
 			if k.key.endswith('/'):
 				#handle folders uploaded alone which have their own keys
-				makeDirectory(os.path.join(localDir+keyString))
+				makeDirectory(os.path.join(localDir,keyString))
 			else:
 				#handle files and files prepended with path
 				makeKeyPath(keyString,localDir)
-				k.get_contents_to_filename(os.path.join(localDir+keyString))
+				k.get_contents_to_filename(os.path.join(localDir,keyString))
 		templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
 		templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
 
@@ -231,9 +231,6 @@ class publisher(object):
 					sys.exit(1)
 				else:
 					destDir=custom
-			#loadTemplates(TemplateBucket)
-			#Have to reload jinja env after loading templates
-			#self._env=jinjaEnv(self.templatePath,self.contentPath)
 			self.renderTemplates()
 			self.copyStatic()
 			if PublishBucket:
