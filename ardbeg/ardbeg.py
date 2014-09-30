@@ -173,7 +173,7 @@ def archive(bucket,sourceDir,destDir):
 def loadTemplates(TemplateBucket):
 	if TemplateBucket:
 		version = SETTINGS.get('templateVersion',None) or ''
-		localDir = os.path.join(ROOT,SETTINGS.get('templatePath')+'/s3-templates/')
+		localDir = os.path.join(ROOT,SETTINGS.get('templatePath'),'s3-templates')
 		recursiveDelete(localDir)
 		makeDirectory(os.path.join(localDir,version))
 		print "<ardbeg> Loading S3 templates "+version+"..."
@@ -402,7 +402,7 @@ def sassCompiler(directory):
 	for root,dirs,files in os.walk(directory):
 		for file in files:
 			extension = os.path.splitext(file)[1][1:].strip().lower()
-			if extension == "sass":
+			if extension == "scss":
 				with open (os.path.join(root,file), "r") as sassFile:
 					string = sassFile.read().replace('\n','')
 					cssFile = open(os.path.join(root,os.path.splitext(file)[0]+".css"),"w+")
