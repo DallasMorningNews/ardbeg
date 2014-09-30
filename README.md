@@ -13,7 +13,7 @@ But Ardbeg likes things done a certain way. It insists on a distributed director
     - Zip up your working directory and post it to an S3 archive, saving your work exactly as you left it without maintaining files locally.
 - Creates a structured development directory for you and, with S3 hook-ups, loads in all your default templates and static files.
 - Ardbeg's develop mode watches your working files and re-renders your site as you make changes.
-- Ardbeg compiles your SASS files into CSS.
+- Ardbeg compiles your SASS/SCSS files into CSS.
 - Ardbeg makes it easy to create data-rich content in your pages by rendering structured data from CSV files in your template context.
 
 As a Python shop, we think of Ardbeg as Django-lite: the best features of a web framework distilled into a small, highly-portable package. Ardbeg is written in Python for people who don't work in Python. Our designers use it to create stories with rich, interactive content outside our regular CMS.
@@ -64,7 +64,7 @@ Run `ardbeg init` in an empty directory (i.e., the project root, where all Ardbe
         - If Ardbeg finds a directory called static files, it is moved to the `staticPath` directory, _unless that directory is not empty._
         
 - **content/** - A flat directory of content html pages to render with templates. Alternatively you may use the `index.html` in the root of the project. Content is exposed as `content/<page name>`.
-- **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale. Use relative references to these files in your templates. Ardbeg also automatically compiles any files in this folder with the extension `.sass` from SASS files into CSS.
+- **static/** - Ardbeg simply copies this directory to the rendered directory, wholesale. Use relative references to these files in your templates. Ardbeg also automatically compiles any files in this folder with the extension `.scss` from SASS/SCSS files into CSS.
 - **data/** - Put CSV files with structured data in this directory, and Ardbeg will expose the data in your templates' context. For example, if you put `people.csv` in this directory (with a header row), it's data can be used in your template like this:
 ```
 {%for row in people.rows%}
