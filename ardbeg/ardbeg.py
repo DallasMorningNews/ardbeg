@@ -48,6 +48,7 @@ def initialize():
 	print "<ardbeg> Making development directory."
 	writeSettings()
 	getSettings()
+	writeMeta()
 	directoryDefaultWriter()
 	#dumb check for S3 creds
 	if SETTINGS.get('AWS_ACCESS_KEY_ID',None) or os.environ.get('AWS_ACCESS_KEY_ID'):
@@ -72,6 +73,14 @@ def writeSettings():
 		from default_settings import DEFAULTSETTINGS
 		file = open(os.path.join(ROOT,"settings"), "w+")
 		file.write(json.dumps(DEFAULTSETTINGS,sort_keys=True,separators=(',\n',':') ))
+		file.close()
+
+def writeMeta():
+	'''
+	Write blank Meta file if doesn't exist.
+	'''
+	if not os.path.isfile(os.path.join(ROOT,'meta')):
+		file = open(os.path.join(ROOT,"meta"),"w+")
 		file.close()
 
 def templateIndex(templatePath):
@@ -203,8 +212,6 @@ def makeKeyPath(keyPath,makePath):
 			makeDirectory(os.path.join(makePath,makeDir))
 
 
-
-
 #############################################################################################
 
 class publisher(object):
@@ -258,6 +265,7 @@ class publisher(object):
 		staticWrite = os.path.join(self.outputPath,os.path.basename(os.path.normpath(self.staticPath)))
 		shutil.copytree(self.staticPath,staticWrite)
 		sassCompiler(staticWrite)
+		fileCleaner(self.outputPath)
 
 	def renderTemplates(self):
 		#render index.html in project root first, IF it exists
@@ -406,3 +414,15 @@ def sassCompiler(directory):
 					cssFile.write(sass.compile(string=string))
 					cssFile.close()
 				os.remove(os.path.join(root,file))
+
+def fileCleaner(directory):
+	'''
+	Removes empty lines from the file...
+	'''
+	for root,dirs,files in os.walk(directory):
+		for file in files:
+			extension = os.path.splitext(file)[1][1:].strip().lower()
+			if extension in ["html","css","js"]:
+				lines = [i for i in open(os.path.join(root,file)) if i[:-1]]
+				with open(os.path.join(root,file),'w+') as outfile:
+				    outfile.writelines(lines)
