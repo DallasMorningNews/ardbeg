@@ -48,7 +48,6 @@ def initialize():
 	print "<ardbeg> Making development directory."
 	writeSettings()
 	getSettings()
-	writeMeta()
 	directoryDefaultWriter()
 	#dumb check for S3 creds
 	if SETTINGS.get('AWS_ACCESS_KEY_ID',None) or os.environ.get('AWS_ACCESS_KEY_ID'):
@@ -75,13 +74,6 @@ def writeSettings():
 		file.write(json.dumps(DEFAULTSETTINGS,sort_keys=True,separators=(',\n',':') ))
 		file.close()
 
-def writeMeta():
-	'''
-	Write blank Meta file if doesn't exist.
-	'''
-	if not os.path.isfile(os.path.join(ROOT,'meta')):
-		file = open(os.path.join(ROOT,"meta"),"w+")
-		file.close()
 
 def templateIndex(templatePath):
 	'''
@@ -143,8 +135,8 @@ def S3wires():
 		try:
 			bucket = S3.get_bucket(SETTINGS.get(bucket,None) or os.environ.get(bucket))
 		except:
-			bucket = None
 			print "<ardbeg> -- No %s S3 bucket found." % bucket
+			bucket = None
 		return bucket
 	PublishBucket = getBucket('AWS_PUBLISH_BUCKET')
 	RepoBucket = getBucket('AWS_REPO_BUCKET')
