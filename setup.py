@@ -11,7 +11,7 @@ setup(
             'ardbeg = ardbeg.cli:start',
         ],
     },
-    url='http://pypi.python.org/pypi/ardbeg/',
+    url='https://github.com/DallasMorningNews/ardbeg',
     license='LICENSE.txt',
     description='Static site generator based on Jinja2.',
     long_description=open('README.txt').read(),
@@ -22,5 +22,11 @@ setup(
         "python-tablefu",
         "boto",
         "libsass >= 0.5.0",
+    ],
+    classifiers=[
+        'Environment :: Web Environment',
+        'License :: OSI Approved :: BSD License', # example license
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
     ],
 )

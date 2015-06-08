@@ -23,7 +23,7 @@ def getSettings():
 	try:
 		SETTINGS = json.load(open(os.path.join(ROOT,'settings')))	
 	except Exception:
-		print "!#!#!# Settings file not found in project root! Add one. (see README)"
+		print("!#!#!# Settings file not found in project root! Add one. (see README)")
 		sys.exit(1)
 
 def jinjaEnv(templatePath,contentPath):
@@ -45,7 +45,7 @@ Init funcs need to be safe to run repeatedly on working directory in order to lo
 after adding directory to settings.
 '''
 def initialize():
-	print "<ardbeg> Making development directory."
+	print("<ardbeg> Making development directory.")
 	writeSettings()
 	getSettings()
 	directoryDefaultWriter()
@@ -54,10 +54,10 @@ def initialize():
 		S3,PublishBucket,RepoBucket,TemplateBucket = S3wires()
 		loadTemplates(TemplateBucket)
 	else:
-		print "<ardbeg> --No S3 template repo found. Can add bucket to settings and rerun ardbeg init."
+		print("<ardbeg> --No S3 template repo found. Can add bucket to settings and rerun ardbeg init.")
 	templateIndex(os.path.join(ROOT,SETTINGS.get('templatePath')))
 	templateStatic( os.path.join(ROOT,SETTINGS.get('staticPath')) , os.path.join(ROOT,SETTINGS.get('templatePath')) )
-	print "<ardbeg> Development directory ready."
+	print("<ardbeg> Development directory ready.")
 
 def directoryDefaultWriter():
 	directories = ['template','static','rendered','content','data']
@@ -106,11 +106,11 @@ def templateStatic(staticPath,templatePath):
 			if subdir == 'static':
 				#if empty directory, copy to staticPath
 				if len(os.listdir(staticPath))==0: 
-					print "<ardbeg> Copying static files"
+					print("<ardbeg> Copying static files")
 					shutil.rmtree(staticPath)
 					shutil.copytree(os.path.join(path,subdir),staticPath)
 				else:
-					print "<ardbeg> Files in static directory. Cannot copy from template."
+					print("<ardbeg> Files in static directory. Cannot copy from template.")
 				shutil.rmtree(os.path.join(path,subdir))
 
 
@@ -128,14 +128,14 @@ def S3wires():
 		S3secret = SETTINGS.get('AWS_SECRET_ACCESS_KEY',None) or os.environ.get('AWS_SECRET_ACCESS_KEY')
 		S3 = S3Connection(S3access, S3secret)
 	except:
-		print "!#!#!# No or bad S3 credentials passed to Ardbeg. Add some to settings. (see README)"
+		print("!#!#!# No or bad S3 credentials passed to Ardbeg. Add some to settings. (see README)")
 		sys.exit(1)
 
 	def getBucket(bucket):
 		try:
 			bucket = S3.get_bucket(SETTINGS.get(bucket,None) or os.environ.get(bucket))
 		except:
-			print "<ardbeg> -- No %s S3 bucket found." % bucket
+			print("<ardbeg> -- No %s S3 bucket found." % bucket)
 			bucket = None
 		return bucket
 	PublishBucket = getBucket('AWS_PUBLISH_BUCKET')
@@ -150,7 +150,7 @@ def upload(bucket,sourceDir,destDir):
         	abspath = os.path.join(path,file)
         	relpath = os.path.relpath(abspath,sourceDir)
         	destpath = os.path.join(destDir, relpath)
-        	print '<ardbeg> Publishing %s to S3 bucket %s' % (relpath, bucket)
+        	print('<ardbeg> Publishing %s to S3 bucket %s' % (relpath, bucket))
         	k.key = destpath
         	k.set_contents_from_filename(abspath)
         	k.set_acl('public-read')
@@ -164,7 +164,7 @@ def archive(bucket,sourceDir,destDir):
 				relpath = os.path.join(os.path.basename(ROOT),os.path.relpath(os.path.join(path,file),ROOT))
 				zf.write(os.path.join(path,file),relpath,zipfile.ZIP_DEFLATED)
 	zf.close()
-	print '<ardbeg> Archiving %s in S3 bucket %s' % (sourceDir, bucket)
+	print('<ardbeg> Archiving %s in S3 bucket %s' % (sourceDir, bucket))
 	now = datetime.datetime.now()
 	k.key = destDir
 	k.set_contents_from_filename('temp.zip')
@@ -177,7 +177,7 @@ def loadTemplates(TemplateBucket):
 		localDir = os.path.join(ROOT,SETTINGS.get('templatePath'),'s3-templates')
 		recursiveDelete(localDir)
 		makeDirectory(os.path.join(localDir,version))
-		print "<ardbeg> Loading S3 templates "+version+"..."
+		print("<ardbeg> Loading S3 templates "+version+"...")
 		keys = TemplateBucket.list(prefix=version)
 		for k in keys:
 			keyString = str(k.key)
@@ -226,7 +226,7 @@ class publisher(object):
 			if permission.lower() != 'y':
 				custom = raw_input('Enter custom directory name to upload project to or enter "X" to cancel: ') 
 				if custom.lower() == 'x':
-					print "Cancelled publish."
+					print("Cancelled publish.")
 					sys.exit(1)
 				else:
 					destDir=custom
@@ -275,9 +275,9 @@ class publisher(object):
 				template.stream(dataContext).dump(os.path.join(self.outputPath,file))
 		except Exception as e:
 			exception_data = traceback.format_exc().splitlines()
-			print "!#!#!# Error rendering templates:"
+			print("!#!#!# Error rendering templates:")
 			for line in  exception_data[-3:]:
-				print line
+				print(line)
 
 	def dataLoad(self):
 		contexts={}
@@ -378,7 +378,7 @@ def argCheck(settingString):
 	try:
 		variable = directoryCheck(SETTINGS[settingString])
 	except:
-		print "!#!#!# No directory provided for %s. Add one to settings."
+		print("!#!#!# No directory provided for %s. Add one to settings.")
 		sys.exit(1)
 	return variable
 
@@ -386,7 +386,7 @@ def directoryCheck(directory):
 	if not os.path.isabs(directory):
 		directory = os.path.join(ROOT,directory)
 	if not os.path.exists(directory):
-		print "!#!#!# The directory '%s' is invalid." % directory
+		print("!#!#!# The directory '%s' is invalid." % directory)
 		sys.exit(1)
 	else:
 		return directory
